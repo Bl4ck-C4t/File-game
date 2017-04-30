@@ -79,7 +79,8 @@ class PC:
         if cmd == "run":
             file = search("name", command[1], self.folder)
             print("Executing file...")
-            exec(file.content)
+            for line in file.content.split("\n"):
+                exec(line)
 
         if cmd == "edit":
             name = command[1]
