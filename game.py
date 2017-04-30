@@ -7,6 +7,18 @@ def search(property, eq, ls):
 
     return False
 
+def find_folder(path, ls):
+    if path == "/":
+        return ls
+    path = path[1:-1].split("/")
+    for x in path:
+        for folder in ls:
+            if folder.name == x:
+                fl = folder
+                ls = fl.files
+                break
+    return fl
+
 class File:
     def __init__(self, name, content, type):
         self.name = name
@@ -33,10 +45,11 @@ class Folder:
 
 class PC:
     def __init__(self, bash):
+        self.name = bash
         self.root = Folder("root", "/", [])
         self.folder = self.root
         self.path = "/"
-        self.bash = bash + "#> "
+        self.bash = bash + self.path + "#> "
 
     def execute(self, command):
         command = command.split(" ")
@@ -85,7 +98,25 @@ class PC:
             os.remove(name)
             file.content = txt
             print("File edited.")
-            
+
+        if cmd == "mkdir":
+            fname = command[1]
+            self.folder.files.append(Folder(fname,self.path + fname + "/",[]))
+            print("Folder created.")
+
+        if cmd == "cd":
+            fname = command[1]
+            if fname == "..":
+                path = self.path[:-1][::-1][self.path[:-1][::-1].index("/"):][::-1]
+            else:
+                path = self.path + fname
+            if path[-1] != "/":
+                path += "/"
+            folder = find_folder(path, self.root)
+            self.path = folder.path
+            self.folder = folder
+            self.bash = self.name + self.path + "#> "
+
 bash = input("Enter name: ")
 my = PC(bash)
 print("'ls' to list files\nnew [filename.ext] - to create a file\nrun [filename.ext] - to run the file")
