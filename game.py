@@ -119,7 +119,9 @@ class PC:
 
 bash = input("Enter name: ")
 my = PC(bash)
-print("'ls' to list files\nnew [filename.ext] - to create a file\nrun [filename.ext] - to run the file")
+print("'ls' - to list files\nnew [filename.ext] - to create a file\nrun [filename.ext] - to run the file\n"
+      "edit [filename.ext] - to edit a file\nmkdir [folder_name] - to make folder\ncd [folder] - to go into a folder\n"
+      "cd .. - to get to the previous folder\ncd / - to get to the root folder")
 
 while True:
     my.execute(input(my.bash))
