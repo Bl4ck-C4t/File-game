@@ -1,11 +1,18 @@
 import os
 import re
+import random
 def search(property, eq, ls):
     for x in ls:
         if eval("x." + property) == eq:
             return x
 
     return False
+
+def ip_gen():
+    ip = ""
+    for x in range(4):
+        ip += str(random.randint(100, 255)) + "."
+    return ip[:-1]
 
 def find_folder(path, ls):
     if path == "/":
@@ -19,14 +26,27 @@ def find_folder(path, ls):
                 break
     return fl
 
+
+def fire_ticket():
+    print("You can get a one use ticket for a firewall with this.")
+
+
+def bliz_startup(other):  # just for testing still in development
+    print("Welcome to Blizzard")
+    print("You are " + other.name)
+
+
 class File:
-    def __init__(self, name, content, type):
-        self.name = name
+    def __init__(self, name, content):
+        nm = re.search(r"(\w+)\.(\w+)", name)
+        self.name = nm.group(1)
+        self.fullname = nm.group()
         self.content = content
-        self.type = type
+        self.type = nm.group(2)
 
     def __repr__(self):
-        return self.name
+        return self.fullname
+
 
 class Folder:
     def __init__(self, name, path, files):
@@ -42,14 +62,16 @@ class Folder:
             yield x
 
 
-
 class PC:
+    PCs = []
     def __init__(self, bash):
         self.name = bash
         self.root = Folder("root", "/", [])
         self.folder = self.root
         self.path = "/"
         self.bash = bash + self.path + "#> "
+        self.ip = ip_gen()
+        self.PCs.append(self)
 
     def execute(self, command):
         command = command.split(" ")
@@ -62,7 +84,6 @@ class PC:
 
         if cmd == "new":
             name = command[1]
-            ext = re.search(r"\.(\w+)$", name).group(1)
             f = open(name,"w")
             f.close()
             os.system("notepad.exe " + name)
@@ -73,14 +94,17 @@ class PC:
             with open(name) as f:
                 txt = f.read()
             os.remove(name)
-            self.folder.files.append(File(name, txt, ext))
+            self.folder.files.append(File(name, txt))
             print("File created.")
 
         if cmd == "run":
-            file = search("name", command[1], self.folder)
+            file = search("fullname", command[1], self.folder)
             print("Executing file...")
-            for line in file.content.split("\n"):
-                exec(line)
+            if file.type == "py":
+                for line in file.content.split("\n"):
+                    exec(line)
+            elif file.type == "exe":
+                eval(file.name + "()")
 
         if cmd == "edit":
             name = command[1]
@@ -118,11 +142,26 @@ class PC:
             self.folder = folder
             self.bash = self.name + self.path + "#> "
 
+        if cmd == "connect":
+            ip = command[1]
+            comp = search("ip", ip, self.PCs)
+            comp.connection(self)
+
+    def connection(self, other):
+        file = search("fullname", "startup.exe", self.root)
+        func = eval(file.content.split("\n")[0])
+        func(other)
+
 bash = input("Enter name: ")
+Blizz = PC("Jeff")
+Blizz.root.files.append(File("startup.exe", "bliz_startup"))
 my = PC(bash)
+my.root.files.append(File("fire_ticket.exe", "0101011010"*10))
+
 print("'ls' - to list files\nnew [filename.ext] - to create a file\nrun [filename.ext] - to run the file\n"
       "edit [filename.ext] - to edit a file\nmkdir [folder_name] - to make folder\ncd [folder] - to go into a folder\n"
-      "cd .. - to get to the previous folder\ncd / - to get to the root folder")
-
+      "cd .. - to get to the previous folder\ncd / - to get to the root folder\nconnect [ip] - to connect to a "
+      "server or PC")
+print("Blizzard ip: " + PC.PCs[0].ip)
 while True:
     my.execute(input(my.bash))
