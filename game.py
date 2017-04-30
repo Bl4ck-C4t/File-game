@@ -1,6 +1,7 @@
 import os
 import re
 import random
+import copy
 def search(property, eq, ls):
     for x in ls:
         if eval("x." + property) == eq:
@@ -8,11 +9,48 @@ def search(property, eq, ls):
 
     return False
 
+def number_game(server, max=10):
+    signs = "+-/*"
+    nums = [random.randint(0,max) for x in range(3)]
+    ls2 = nums[:]
+    random.shuffle(ls2)
+    while True:
+        num = eval("({} {} {}) {} {}".format(ls2[0], random.choice(signs), ls2[1],random.choice(signs),ls2[2]))
+        if int(num) == num:
+            break
+    print("{} ? {} ? {} = {}".format(nums[0], nums[1], nums[2], num))
+    while True:
+        sk = False
+        answer = input("Enter solution('e' - to exit): ")
+        if answer == "e":
+            print("You canceled.")
+            return False
+        ans = eval(answer)
+        numbers = re.findall(r"\d+", answer)
+        for x in numbers:
+            if not(int(x) in nums):
+                print("Wrong numbers!")
+                sk = True
+                break
+        if sk:
+            continue
+        if ans == num:
+            print("Correct!")
+            print("One use ticket found: " + server.ticket)
+            return True
+        else:
+            print("Wrong result: Your result is {}\nYou need to get the result {}".format(ans, num))
+
+
 def ip_gen():
     ip = ""
     for x in range(4):
         ip += str(random.randint(100, 255)) + "."
     return ip[:-1]
+
+def code_gen(ln=4):
+    alpha = "0123456789qwertyuiopasdfghjklzxcvbnm"
+    return "".join([random.choice(alpha) for x in range(ln)])
 
 def find_folder(path, ls):
     if path == "/":
@@ -26,14 +64,54 @@ def find_folder(path, ls):
                 break
     return fl
 
+def find_file(path, ls):
+    path = path[1:].split("/")
+    for x in path:
+        if x == path[-1]:
+            return search("fullname", x, ls)
+        for folder in ls:
+            if folder.name == x:
+                fl = folder
+                ls = fl.files
+                break
+
+
 
 def fire_ticket():
     print("You can get a one use ticket for a firewall with this.")
+    ip = input("Enter ip of server to get ticket from('c' - to cancel): ")
+    if ip == "c":
+        print("You canceled.")
+        return
+    comp = search("ip", ip, PC.PCs)
+    number_game(comp)
 
 
-def bliz_startup(other):  # just for testing still in development
+
+def bliz_startup(bliz, other):  # just for testing still in development
     print("Welcome to Blizzard")
-    print("You are " + other.name)
+    while True:
+        print("1. Login\n2. Use ticket\n3. Disconnect")
+        op = input("Enter option: ")
+        if op == "3":
+            print("You disconnected.")
+            break
+        if op == "2":
+            code = input("Enter ticket: ")
+            if code == bliz.ticket:
+                print("Code right")
+                path = input("Enter full filepath to upload a file('c'- to cancel): ")
+                file = find_file(path, other.root)
+                file = copy.deepcopy(file)
+                bliz.root.files.append(file)
+                print("File uploaded!")
+                print("One use ticket '{}' used.".format(code))
+                bliz.ticket = code_gen()
+                if path == "c":
+                    print("You canceled.")
+                    print("On use ticket still valid")
+                    return
+
 
 
 class File:
@@ -99,6 +177,8 @@ class PC:
 
         if cmd == "run":
             file = search("fullname", command[1], self.folder)
+            if file == False:
+                print("File '{}' does not exist.".format(command[1]))
             print("Executing file...")
             if file.type == "py":
                 for line in file.content.split("\n"):
@@ -148,13 +228,14 @@ class PC:
             comp.connection(self)
 
     def connection(self, other):
-        file = search("fullname", "startup.exe", self.root)
+        file = search("fullname", "connections.run", self.root)
         func = eval(file.content.split("\n")[0])
-        func(other)
+        func(self, other)
 
 bash = input("Enter name: ")
 Blizz = PC("Jeff")
-Blizz.root.files.append(File("startup.exe", "bliz_startup"))
+Blizz.root.files.append(File("connections.run", "bliz_startup"))
+Blizz.ticket = code_gen()
 my = PC(bash)
 my.root.files.append(File("fire_ticket.exe", "0101011010"*10))
 
