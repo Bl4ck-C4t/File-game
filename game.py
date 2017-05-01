@@ -386,7 +386,7 @@ def main():  # main function
           "edit [filename.ext] - to edit a file\nmkdir [folder_name] - to make folder\ncd [folder] - to go into a folder\n"
           "cd .. - to get to the previous folder\ncd / - to get to the root folder\nconnect [ip] - to connect to a "
           "server or PC\nrm - to remove a file\ncat [file] to read a file\ndis - to connect back to your gateway")
-    print("Blizzard ip: " + PC.PCs[0].ip)
+    print("Blizzard ip: " + Blizz.ip)
     Helper.i = my
     Helper.mine = my
     while True:
