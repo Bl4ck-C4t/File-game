@@ -7,10 +7,7 @@ import time
 import inspect
 
 # TODO False appearing in blizz filesystem
-# TODO put docstrings on methods
-# TODO use inspect.getmembers(object, predicate=inspect.ismethod) and method.__doc__ to get docstring
-# TODO generate files for the dump server at main. The files should be help for the methods
-# TODO dir(obj) to easly get all variables
+
 
 def search(property, eq, ls):
     try:
@@ -343,6 +340,10 @@ class PC:
     def connection(self, other):
         'This runs a function stored in the connections.run file when someone connects'
         file = search("fullname", "connections.run", self.root)
+        if not file:
+            print("connections.run not found on device {0}\nYou are connected to {0}.".format(self.ip))
+            Helper.i = self
+            return
         func = eval(file.content.split("\n")[0])
         func(self, other)
 
