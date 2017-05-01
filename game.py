@@ -22,6 +22,16 @@ def search(property, eq, ls):
 
     return False
 
+def arg_maker(obj_name, name):
+    rt = list(inspect.signature(eval(obj_name + "." + name)).parameters)
+    pr = ""
+    if len(rt) > 0 and rt[0] == "self":
+        pr = "self."
+        del rt[0]
+    return "{}{}({})".format(pr, name, ", ".join(rt))
+
+
+
 def number_game(server, max=10):
     print("Solve the equation by putting the right signs\nEx:10 ? 5 ? 2 = 25\nExpected input:(10/2)*5")
     signs = "+-/*"
@@ -359,8 +369,7 @@ def main():  # main function
         meth += "Methods for {}s:\n".format(obj_name)
         for name, instance in methods:
             if name[0] != "_":
-                meth += " "*4 + name + "({}) - ".format(", ".join(list(inspect.signature(eval(obj_name +"." + name))
-                        .parameters))) + instance.__doc__ + "\n"
+                meth += " "*4 + "{} - ".format(arg_maker(obj_name, name)) + instance.__doc__ + "\n"
 
     for obj in test_obj:
         propertys = list(obj.__dict__.keys())
