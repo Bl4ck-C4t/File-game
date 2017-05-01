@@ -7,7 +7,8 @@ import time
 import inspect
 
 # TODO False appearing in blizz filesystem
-
+# TODO modify the run method so when it runs a file to a system we are not connected to it prints 'file {} executed
+# TODO at {}'
 
 def search(property, eq, ls):
     try:
@@ -36,9 +37,12 @@ def number_game(server, max=10):
     ls2 = nums[:]
     random.shuffle(ls2)
     while True:
-        num = eval("({} {} {}) {} {}".format(ls2[0], random.choice(signs), ls2[1],random.choice(signs),ls2[2]))
-        if int(num) == num:
-            break
+        try:
+            num = eval("({} {} {}) {} {}".format(ls2[0], random.choice(signs), ls2[1],random.choice(signs),ls2[2]))
+            if int(num) == num:
+                break
+        except ZeroDivisionError:
+            continue
     print("{} ? {} ? {} = {}".format(nums[0], nums[1], nums[2], num))
     while True:
         sk = False
@@ -122,12 +126,11 @@ def DDos():
     print("Overflowing {} ...".format(ip))
     time.sleep(1.5)
     comp.reboot()
-    print("Server {} rebooting.".format(ip))
+    print("Server {} rebooted.".format(ip))
     Helper.ddos_timer = datetime.datetime.now()
 
 
-
-def bliz_startup(bliz, other):  # just for testing still in development
+def bliz_startup(bliz, other):
     print("Welcome to Blizzard")
     while True:
         print("1. Enter\n2. Use ticket\n3. Disconnect")
@@ -136,8 +139,9 @@ def bliz_startup(bliz, other):  # just for testing still in development
             if bool(bliz.firewall):
                 print("Blocked by Blizzard firewall.")
             else:
-                print("Welcome to Blizzard")
+                print("You are connected to blizzard core.")
                 Helper.i = bliz
+                return
         if op == "3":
             print("You disconnected.")
             break
@@ -151,6 +155,9 @@ def bliz_startup(bliz, other):  # just for testing still in development
                     print("On use ticket still valid")
                     return
                 file = find_file(path, other.root)
+                if file == False:
+                    print("file {} not found".format(path))
+                    continue
                 file = copy.deepcopy(file)
                 bliz.root.files.append(file)
                 print("File uploaded!")
@@ -329,7 +336,11 @@ class PC:
             print("File removed.")
 
         if cmd == "dis":
-            Helper.i = Helper.mine
+            if Helper.i != Helper.mine:
+                print("You disconnected")
+                Helper.i = Helper.mine
+            else:
+                print("You can't disconnect from yourself.")
 
         if cmd == "cat":
             fname = command[1]
@@ -341,7 +352,7 @@ class PC:
         'This runs a function stored in the connections.run file when someone connects'
         file = search("fullname", "connections.run", self.root)
         if not file:
-            print("connections.run not found on device {0}\nYou are connected to {0}.".format(self.ip))
+            print("'connections.run' not found on device {0}\nYou are connected to {0}.".format(self.ip))
             Helper.i = self
             return
         func = eval(file.content.split("\n")[0])
@@ -366,24 +377,25 @@ def main():  # main function
     props = ""
     for obj in test_obj:  # Methods info generation
         methods = inspect.getmembers(obj, predicate=inspect.ismethod)
+        propertys = list(obj.__dict__.keys())
         obj_name = obj.__class__.__name__
         meth += "Methods for {}s:\n".format(obj_name)
+        props += "Properties for {}s:\n".format(obj_name)
         for name, instance in methods:
             if name[0] != "_":
                 meth += " "*4 + "{} - ".format(arg_maker(obj_name, name)) + instance.__doc__ + "\n"
-
-    for obj in test_obj:
-        propertys = list(obj.__dict__.keys())
-        props += "Properties for {}s:\n".format(obj.__class__.__name__)
         for prop in propertys:
             if prop[0] != "_":
                 props += " "*4 + prop + "\n"
     dump = PC("info")
     file = File("Methods.txt", meth)
     file2 = File("Proprties.txt", props)
+    file3 = File("Files.txt", "Each file has a startup property. When a server reboots it starts all files with\n"
+                              " startup = True. You can use the 'file' variable to refrence to the file getting ran.")
     dump.root.files.append(File("connections.run", "helper"))
     dump.root.files.append(file)
-    dump.root.files.append(file2)  # generation ends here
+    dump.root.files.append(file2)
+    dump.root.files.append(file3) # generation ends here
     Blizz = PC("Jeff")
     Blizz.root.files.append(File("connections.run", "bliz_startup"))
     Blizz.ticket = code_gen()
