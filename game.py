@@ -6,19 +6,20 @@ import datetime
 import time
 import inspect
 
+
 # TODO False appearing in blizz filesystem
-# TODO modify the run method so when it runs a file to a system we are not connected to it prints 'file {} executed
-# TODO at {}'
+
 
 def search(property, eq, ls):
-    try:
-        for x in ls:
+
+    for x in ls:
+        try:
             if eval("x." + property) == eq:
                 return x
-    except:
-        return False
-
+        except:
+            continue
     return False
+
 
 def arg_maker(obj_name, name):
     rt = list(inspect.signature(eval(obj_name + "." + name)).parameters)
@@ -29,16 +30,15 @@ def arg_maker(obj_name, name):
     return "{}{}({})".format(pr, name, ", ".join(rt))
 
 
-
 def number_game(server, max=10):
     print("Solve the equation by putting the right signs\nEx:10 ? 5 ? 2 = 25\nExpected input:(10/2)*5")
     signs = "+-/*"
-    nums = [random.randint(0,max) for x in range(3)]
+    nums = [random.randint(0, max) for x in range(3)]
     ls2 = nums[:]
     random.shuffle(ls2)
     while True:
         try:
-            num = eval("({} {} {}) {} {}".format(ls2[0], random.choice(signs), ls2[1],random.choice(signs),ls2[2]))
+            num = eval("({} {} {}) {} {}".format(ls2[0], random.choice(signs), ls2[1], random.choice(signs), ls2[2]))
             if int(num) == num:
                 break
         except ZeroDivisionError:
@@ -53,7 +53,7 @@ def number_game(server, max=10):
         ans = eval(answer)
         numbers = re.findall(r"\d+", answer)
         for x in numbers:
-            if not(int(x) in nums):
+            if not (int(x) in nums):
                 print("Wrong numbers!")
                 sk = True
                 break
@@ -73,9 +73,11 @@ def ip_gen():
         ip += str(random.randint(100, 255)) + "."
     return ip[:-1]
 
+
 def code_gen(ln=4):
     alpha = "0123456789qwertyuiopasdfghjklzxcvbnm"
     return "".join([random.choice(alpha) for x in range(ln)])
+
 
 def find_folder(path, ls):
     if path == "/":
@@ -89,6 +91,7 @@ def find_folder(path, ls):
                 break
     return fl
 
+
 def find_file(path, ls):
     path = path[1:].split("/")
     for x in path:
@@ -101,7 +104,6 @@ def find_file(path, ls):
                 break
 
 
-
 def fire_ticket():
     print("You can get a one use ticket for a firewall with this.")
     ip = input("Enter ip of server to get ticket from('c' - to cancel): ")
@@ -109,13 +111,17 @@ def fire_ticket():
         print("You canceled.")
         return
     comp = search("ip", ip, PC.PCs)
-    number_game(comp)
+    if "ticket" in dir(comp):
+        number_game(comp)
+    else:
+        print("Computer does not have tickets.")
+
 
 def DDos():
     print("You can use it to DDos a server. When that happens the server reboots.\nCan be done once per 30 sec.")
     if Helper.ddos_timer != 0:
         current = datetime.datetime.now() - Helper.ddos_timer
-    if not(Helper.ddos_timer == 0 or current.seconds >= 30):
+    if not (Helper.ddos_timer == 0 or current.seconds >= 30):
         print("You need to wait {} more seconds".format(30 - current.seconds))
         return
     ip = input("Enter ip of server to DDos('c' - to cancel): ")
@@ -166,6 +172,7 @@ def bliz_startup(bliz, other):
 
             else:
                 print("Wrong code.")
+
 
 def helper(self, other):
     print("You are connected to the helper server")
@@ -227,6 +234,7 @@ class Folder:
 
 class PC:
     PCs = []
+
     def __init__(self, bash):
         self.name = bash
         self.root = Folder("root", "/", [])
@@ -246,6 +254,10 @@ class PC:
                 print(x)
             if len(self.folder.files) == 0:
                 print("No files.")
+
+        if cmd == "pcs":
+            for comp in self.PCs:
+                print("{} - {}".format(comp.name, comp.ip))
 
         if cmd == "new":
             name = command[1]
@@ -269,7 +281,7 @@ class PC:
             if file == False:
                 print("File '{}' does not exist.".format(command[1]))
                 return
-            if self.ip != Helper.i:
+            if self.ip != Helper.i.ip:
                 print("File {} executed at {}".format(command[1], self.ip))
             else:
                 print("Executing file...")
@@ -309,7 +321,7 @@ class PC:
 
         if cmd == "mkdir":
             fname = command[1]
-            self.folder.files.append(Folder(fname,self.path + fname + "/",[]))
+            self.folder.files.append(Folder(fname, self.path + fname + "/", []))
             print("Folder created.")
 
         if cmd == "cd":
@@ -349,13 +361,19 @@ class PC:
             fname = command[1]
             file = search("fullname", fname, self.folder)
             print(file.content)
-        
+
         if cmd == "mv":
             file = search("fullname", command[1], self.folder)
             folder = command[2]
-            folder = find_folder(folder)
-            folder.append(file)
-            self.folder.remove(file)
+            if folder[-1] != "/":
+                folder += "/"
+            folder = find_folder(folder, self.root)
+            if file == False:
+                print("File not found")
+            elif folder == False:
+                print("Folder not found")
+            folder.files.append(file)
+            self.folder.files.remove(file)
             print("File moved.")
 
     def connection(self, other):
@@ -393,10 +411,10 @@ def main():  # main function
         props += "Properties for {}s:\n".format(obj_name)
         for name, instance in methods:
             if name[0] != "_":
-                meth += " "*4 + "{} - ".format(arg_maker(obj_name, name)) + instance.__doc__ + "\n"
+                meth += " " * 4 + "{} - ".format(arg_maker(obj_name, name)) + instance.__doc__ + "\n"
         for prop in propertys:
             if prop[0] != "_":
-                props += " "*4 + prop + "\n"
+                props += " " * 4 + prop + "\n"
     dump = PC("info")
     file = File("Methods.txt", meth)
     file2 = File("Proprties.txt", props)
@@ -405,13 +423,13 @@ def main():  # main function
     dump.root.files.append(File("connections.run", "helper"))
     dump.root.files.append(file)
     dump.root.files.append(file2)
-    dump.root.files.append(file3) # generation ends here
+    dump.root.files.append(file3)  # generation ends here
     Blizz = PC("Jeff")
     Blizz.root.files.append(File("connections.run", "bliz_startup"))
     Blizz.ticket = code_gen()
     my = PC(bash)
-    my.root.files.append(File("fire_ticket.exe", "0101011010"*10))
-    my.root.files.append(File("DDos.exe", "11010010"*10))
+    my.root.files.append(File("fire_ticket.exe", "0101011010" * 10))
+    my.root.files.append(File("DDos.exe", "11010010" * 10))
     my.root.files.append(File("helper.txt", "ip: " + dump.ip))
 
     print("'ls' - to list files\nnew [filename.ext] - to create a file\nrun [filename.ext] - to run the file\n"
@@ -419,11 +437,13 @@ def main():  # main function
           "cd .. - to get to the previous folder\ncd / - to get to the root folder\nconnect [ip] - to connect to a "
           "server or PC\nrm - to remove a file\ncat [file] to read a file\ndis - to connect back to your gateway")
     print("Blizzard ip: " + Blizz.ip)
+    #my.root.files.append(File("test.txt", "shit son."))
     Helper.i = my
     Helper.mine = my
     while True:
         ins = Helper.i
         ins.execute(input(ins.bash))
+
 
 if __name__ == '__main__':
     main()
