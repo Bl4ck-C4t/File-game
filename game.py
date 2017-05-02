@@ -269,7 +269,10 @@ class PC:
             if file == False:
                 print("File '{}' does not exist.".format(command[1]))
                 return
-            print("Executing file...")
+            if self.ip != Helper.i:
+                print("File {} executed at {}".format(command[1], self.ip))
+            else:
+                print("Executing file...")
             if file.type == "py":
                 line_num = 1
                 comp = self
