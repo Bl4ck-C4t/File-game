@@ -350,13 +350,13 @@ class PC:
             file = search("fullname", fname, self.folder)
             print(file.content)
         
-       if cmd == "mv":
-           file = search("fullname", command[1], self.folder)
-           folder = command[2]
-           folder = find_folder(folder)
-           folder.append(file)
-           self.folder.remove(file)
-           print("File moved.")
+        if cmd == "mv":
+            file = search("fullname", command[1], self.folder)
+            folder = command[2]
+            folder = find_folder(folder)
+            folder.append(file)
+            self.folder.remove(file)
+            print("File moved.")
 
     def connection(self, other):
         'This runs a function stored in the connections.run file when someone connects'
