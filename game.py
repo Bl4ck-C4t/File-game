@@ -251,7 +251,7 @@ class PC:
             name = command[1]
             f = open(name, "w")
             f.close()
-            os.system("notepad.exe " + name)
+            os.system("subl.exe " + name)
             an = input("Press 'c' to cancel and any key to continue...")
             if an == "c":
                 os.remove(name)
@@ -293,7 +293,7 @@ class PC:
             f = open(name, "w")
             f.write(file.content)
             f.close()
-            os.system("notepad.exe " + name)
+            os.system("subl.exe " + name)
             an = input("Press 'c' to cancel and any key to continue...")
             if an == "c":
                 os.remove(name)
@@ -412,6 +412,7 @@ def main():  # main function
     Helper.i = my
     Helper.mine = my
     while True:
+        Helper.i = None
         ins = Helper.i
         ins.execute(input(ins.bash))
 
