@@ -82,7 +82,7 @@ def code_gen(ln=4):
 def find_folder(path, ls):
     if path == "/":
         return ls
-    path = path[1:-1].split("/")
+    path = re.findall(r"\w+", path)
     for x in path:
         for folder in ls:
             if folder.name == x:
@@ -93,7 +93,7 @@ def find_folder(path, ls):
 
 
 def find_file(path, ls):
-    path = path[1:].split("/")
+    path = re.findall(r"\w+", path)
     for x in path:
         if x == path[-1]:
             return search("fullname", x, ls)
